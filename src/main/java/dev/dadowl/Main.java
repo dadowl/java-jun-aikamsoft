@@ -12,35 +12,34 @@ public class Main {
     public static JsonElement INPUT_FILE;
     public static String OUTPUT_FILE = "";
 
-    public static Connection DB = DatabaseUtil.connect();
-
     public static void main(String[] args) throws Exception {
         if (args.length < 3){
-            System.out.println("Incomplete arguments");
+            System.out.println("Incomplete arguments.");
             return;
         }
         try {
             REQUEST_TYPE = RequestType.valueOf("search".toUpperCase()/*args[0].toUpperCase()*/);
         } catch (Exception e){
-            System.out.println("Request type is invalid");
+            System.out.println("Request type is invalid.");
             return;
         }
 
         INPUT_FILE = FileUtil.openFile(args[1]);
         if (INPUT_FILE == null){
-            throw new Exception("The input file is not found or JSON error!");
+            throw new Exception("The input file is not found or JSON error.");
         }
         if (INPUT_FILE.isJsonNull()){
-            throw new Exception("The input file is empty!");
+            throw new Exception("The input file is empty.");
         }
 
         OUTPUT_FILE = args[2];
         if (OUTPUT_FILE.isEmpty()){
-            throw new Exception("Output file entered incorrectly");
+            throw new Exception("Output file entered incorrectly.");
         }
 
-        if (DB == null){
-            throw new Exception("Database connection error.");
+        DatabaseUtil.connect();
+        if (!DatabaseUtil.initTables()){
+            throw new Exception("Dtabase tables error.");
         }
     }
 
