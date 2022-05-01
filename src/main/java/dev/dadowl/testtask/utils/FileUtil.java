@@ -1,4 +1,4 @@
-package dev.dadowl.utils;
+package dev.dadowl.testtask.utils;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;

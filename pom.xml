@@ -24,7 +24,7 @@
                         <manifest>
                             <addClasspath>true</addClasspath>
                             <classpathPrefix>lib/</classpathPrefix>
-                            <mainClass>dev.dadowl.Main</mainClass>
+                            <mainClass>dev.dadowl.testtask.Main</mainClass>
                         </manifest>
                     </archive>
                 </configuration>

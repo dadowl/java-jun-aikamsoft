@@ -1,4 +1,4 @@
-package dev.dadowl;
+package dev.dadowl.testtask;
 
 public enum RequestType {
     NONE,

@@ -1,10 +1,8 @@
-package dev.dadowl;
+package dev.dadowl.testtask;
 
 import com.google.gson.JsonElement;
-import dev.dadowl.utils.DatabaseUtil;
-import dev.dadowl.utils.FileUtil;
-
-import java.sql.Connection;
+import dev.dadowl.testtask.utils.DatabaseUtil;
+import dev.dadowl.testtask.utils.FileUtil;
 
 public class Main {
 
