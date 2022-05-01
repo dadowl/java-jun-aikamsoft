@@ -1,8 +1,6 @@
 package dev.dadowl.testtask.utils;
 
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
+import com.google.gson.*;
 
 import java.io.*;
 
@@ -25,8 +23,21 @@ public class FileUtils {
     }
 
     public static Boolean saveFile(String fileName, JsonObject jsonToSave){
+        Gson gson = new GsonBuilder().setPrettyPrinting().create();
 
-        return false;
+        File file = new File(fileName);
+
+        FileWriter writer;
+        try {
+            writer = new FileWriter(file);
+            writer.write(gson.toJson(jsonToSave));
+            writer.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+            return false;
+        }
+
+        return true;
     }
 
 }
