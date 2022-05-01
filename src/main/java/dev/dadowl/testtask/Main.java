@@ -1,8 +1,7 @@
 package dev.dadowl.testtask;
 
 import com.google.gson.JsonElement;
-import dev.dadowl.testtask.utils.DatabaseUtil;
-import dev.dadowl.testtask.utils.FileUtil;
+import dev.dadowl.testtask.utils.*;
 
 public class Main {
 
