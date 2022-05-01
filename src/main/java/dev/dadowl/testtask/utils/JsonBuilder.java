@@ -1,5 +1,6 @@
 package dev.dadowl.testtask.utils;
 
+import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 
 public class JsonBuilder {
@@ -29,6 +30,11 @@ public class JsonBuilder {
 
     public JsonBuilder add(String key, JsonObject value) {
         json.add(key, value);
+        return this;
+    }
+
+    public JsonBuilder add(String key, JsonArray array){
+        json.add(key, array);
         return this;
     }
 
