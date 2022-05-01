@@ -3,6 +3,7 @@ package dev.dadowl.testtask.utils;
 import com.google.gson.*;
 
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 
 public class FileUtils {
 
@@ -10,7 +11,7 @@ public class FileUtils {
         JsonElement json;
         Reader reader;
         try {
-            reader = new InputStreamReader(new FileInputStream(fileName), "UTF-8");
+            reader = new InputStreamReader(new FileInputStream(fileName), StandardCharsets.UTF_8);
         } catch (Exception e) {
             return null;
         }
