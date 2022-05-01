@@ -1,13 +1,18 @@
 package dev.dadowl;
 
 import com.google.gson.JsonElement;
+import dev.dadowl.utils.DatabaseUtil;
 import dev.dadowl.utils.FileUtil;
+
+import java.sql.Connection;
 
 public class Main {
 
     public static RequestType REQUEST_TYPE = RequestType.NONE;
     public static JsonElement INPUT_FILE;
     public static String OUTPUT_FILE = "";
+
+    public static Connection DB = DatabaseUtil.connect();
 
     public static void main(String[] args) throws Exception {
         if (args.length < 3){
@@ -31,8 +36,11 @@ public class Main {
 
         OUTPUT_FILE = args[2];
         if (OUTPUT_FILE.isEmpty()){
-            System.out.println("Output file entered incorrectly");
-            return;
+            throw new Exception("Output file entered incorrectly");
+        }
+
+        if (DB == null){
+            throw new Exception("Database connection error.");
         }
     }
 
