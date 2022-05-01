@@ -1,7 +1,8 @@
 package dev.dadowl.testtask;
 
 import com.google.gson.JsonElement;
-import dev.dadowl.testtask.utils.*;
+import dev.dadowl.testtask.utils.DatabaseUtils;
+import dev.dadowl.testtask.utils.FileUtils;
 
 public class Main {
 
@@ -21,7 +22,7 @@ public class Main {
             return;
         }
 
-        INPUT_FILE = FileUtil.openFile(args[1]);
+        INPUT_FILE = FileUtils.openFile(args[1]);
         if (INPUT_FILE == null){
             throw new Exception("The input file is not found or JSON error.");
         }
@@ -34,9 +35,9 @@ public class Main {
             throw new Exception("Output file entered incorrectly.");
         }
 
-        DatabaseUtil.connect();
-        if (!DatabaseUtil.initTables()){
-            throw new Exception("Dtabase tables error.");
+        DatabaseUtils.connect();
+        if (!DatabaseUtils.initTables()){
+            throw new Exception("Database tables error.");
         }
     }
 

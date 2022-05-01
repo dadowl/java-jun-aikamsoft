@@ -6,7 +6,7 @@ import com.google.gson.JsonParser;
 
 import java.io.*;
 
-public class FileUtil {
+public class FileUtils {
 
     public static JsonElement openFile(String fileName){
         JsonElement json;
@@ -24,7 +24,7 @@ public class FileUtil {
         }
     }
 
-    public static Boolean saveFile(JsonObject jsonToSave){
+    public static Boolean saveFile(String fileName, JsonObject jsonToSave){
 
         return false;
     }

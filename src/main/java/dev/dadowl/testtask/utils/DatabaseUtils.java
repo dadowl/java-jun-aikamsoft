@@ -5,7 +5,7 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 
-public class DatabaseUtil {
+public class DatabaseUtils {
 
     private static final String url = "jdbc:postgresql://10.8.0.11/java-jun-aikamsoft";
     private static final String user = "dadowl";
