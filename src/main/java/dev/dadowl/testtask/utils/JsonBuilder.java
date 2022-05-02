@@ -23,6 +23,11 @@ public class JsonBuilder {
         return this;
     }
 
+    public JsonBuilder add(String key, float value) {
+        json.addProperty(key, value);
+        return this;
+    }
+
     public JsonBuilder add(String key, boolean value) {
         json.addProperty(key, value);
         return this;
