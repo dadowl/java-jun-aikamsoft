@@ -23,32 +23,69 @@ public class Main {
 
     public static void main(String[] args) throws Exception {
         if (args.length < 3){
-            System.out.println("Incomplete arguments.");
+            FileUtils.saveFile("output.json", new JsonBuilder()
+                    .add("type", "error")
+                    .add("message", "Аргументы не указаны или указано меньше 3х.")
+                    .build()
+            );
             return;
         }
         try {
             REQUEST_TYPE = RequestType.valueOf(args[0].toUpperCase().toUpperCase());
         } catch (Exception e){
-            System.out.println("Request type is invalid.");
+            FileUtils.saveFile("output.json", new JsonBuilder()
+                    .add("type", "error")
+                    .add("message","Указан не корректный тип запроса.")
+                    .build()
+            );
             return;
         }
 
         INPUT_FILE = FileUtils.openFile(args[1]);
         if (INPUT_FILE == null){
-            throw new Exception("The input file is not found or JSON error.");
+            FileUtils.saveFile("output.json", new JsonBuilder()
+                    .add("type", "error")
+                    .add("message","Входной файл не найден или имеет ошибку JSON.")
+                    .build()
+            );
+            return;
         }
         if (INPUT_FILE.isJsonNull()){
-            throw new Exception("The input file is empty.");
+            FileUtils.saveFile("output.json", new JsonBuilder()
+                    .add("type", "error")
+                    .add("message","Входной файл пуст.")
+                    .build()
+            );
+            return;
         }
 
         OUTPUT_FILE = args[2];
         if (OUTPUT_FILE.isEmpty()){
-            throw new Exception("Output file entered incorrectly.");
+            FileUtils.saveFile("output.json", new JsonBuilder()
+                    .add("type", "error")
+                    .add("message","Выходной файл не указан или указан не корректно.")
+                    .build()
+            );
+            return;
         }
 
-        DatabaseUtils.connect();
+        try {
+            DatabaseUtils.connect();
+        } catch (Exception e){
+            FileUtils.saveFile(OUTPUT_FILE, new JsonBuilder()
+                    .add("type", "error")
+                    .add("message","Ошибка подключения к БД.")
+                    .build()
+            );
+            return;
+        }
         if (!DatabaseUtils.initTables()){
-            throw new Exception("Database tables error.");
+            FileUtils.saveFile(OUTPUT_FILE, new JsonBuilder()
+                    .add("type", "error")
+                    .add("message","Ошибка при инициализации таблиц")
+                    .build()
+            );
+            return;
         }
 
         if (REQUEST_TYPE == RequestType.SEARCH){
@@ -62,9 +99,9 @@ public class Main {
 
         if (INPUT_FILE.getAsJsonObject().get("criterias") == null){
             return new JsonBuilder()
-                .add("type", "error")
-                .add("message","Критерии не найдены.")
-            .build();
+                    .add("type", "error")
+                    .add("message","Критерии не найдены.")
+                    .build();
         }
 
         JsonBuilder builder = new JsonBuilder();
@@ -86,17 +123,16 @@ public class Main {
                     ResultSet result = query.executeQuery();
                     while (result.next()){
                         rowResults.add(new JsonBuilder()
-                            .add("lastName", result.getString("lastName"))
-                            .add("firstname", result.getString("name"))
-                        .build());
+                                .add("lastName", result.getString("lastName"))
+                                .add("firstname", result.getString("name"))
+                                .build());
                     }
                     result.close();
                 } catch (SQLException e) {
-                    e.printStackTrace();
                     return new JsonBuilder()
-                        .add("type", "error")
-                        .add("message","Ошибка запроса.")
-                    .build();
+                            .add("type", "error")
+                            .add("message","Ошибка запроса.")
+                            .build();
                 }
 
             } else if (criteria.getAsJsonObject().get("productName") != null && criteria.getAsJsonObject().get("minTimes") != null) {
@@ -105,21 +141,24 @@ public class Main {
 
                 try {
                     PreparedStatement query = DatabaseUtils.connection.prepareStatement(
-                    "SELECT * FROM Purchases " +
-                        "INNER JOIN Buyers ON Purchases.buyer = Buyers.buyerId " +
-                        "INNER JOIN Goods ON Purchases.item = Goods.goodId " +
-                        "WHERE Goods.name = '"+productName+"' " +
-                        "LIMIT "+minTimes+";");
+                            "SELECT * FROM Purchases " +
+                                    "INNER JOIN Buyers ON Purchases.buyer = Buyers.buyerId " +
+                                    "INNER JOIN Goods ON Purchases.item = Goods.goodId " +
+                                    "WHERE Goods.name = '"+productName+"' " +
+                                    "LIMIT "+minTimes+";");
                     ResultSet result = query.executeQuery();
                     while (result.next()){
                         rowResults.add(new JsonBuilder()
                                 .add("lastName", result.getString("lastName"))
                                 .add("firstname", result.getString("name"))
-                            .build());
+                                .build());
                     }
                     result.close();
                 } catch (SQLException e) {
-                    e.printStackTrace();
+                    return new JsonBuilder()
+                            .add("type", "error")
+                            .add("message","Ошибка запроса.")
+                            .build();
                 }
             } else if (criteria.getAsJsonObject().get("minExpenses") != null && criteria.getAsJsonObject().get("maxExpenses") != null) {
                 int minExpenses = criteria.getAsJsonObject().get("minExpenses").getAsInt();
@@ -127,12 +166,12 @@ public class Main {
 
                 try {
                     PreparedStatement query = DatabaseUtils.connection.prepareStatement(
-                    "WITH totalItemsPrice AS (" +
-                        "    SELECT DISTINCT Buyers.buyerId, Buyers.name, Buyers.lastName," +
-                        "    sum(Goods.price) OVER(PARTITION BY Buyers.buyerId) AS totlaPrice FROM Purchases" +
-                        "    INNER JOIN Buyers ON Purchases.buyer = Buyers.buyerId" +
-                        "    INNER JOIN Goods ON Purchases.item = Goods.goodId)" +
-                        "SELECT * FROM totalItemsPrice WHERE totlaPrice BETWEEN "+minExpenses+" AND "+maxExpenses+";");
+                            "WITH totalItemsPrice AS (" +
+                                    "    SELECT DISTINCT Buyers.buyerId, Buyers.name, Buyers.lastName," +
+                                    "    sum(Goods.price) OVER(PARTITION BY Buyers.buyerId) AS totlaPrice FROM Purchases" +
+                                    "    INNER JOIN Buyers ON Purchases.buyer = Buyers.buyerId" +
+                                    "    INNER JOIN Goods ON Purchases.item = Goods.goodId)" +
+                                    "SELECT * FROM totalItemsPrice WHERE totlaPrice BETWEEN "+minExpenses+" AND "+maxExpenses+";");
                     ResultSet result = query.executeQuery();
                     while (result.next()){
                         rowResults.add(new JsonBuilder()
@@ -142,26 +181,25 @@ public class Main {
                     }
                     result.close();
                 } catch (SQLException e) {
-                    e.printStackTrace();
                     return new JsonBuilder()
-                        .add("type", "error")
-                        .add("message","Ошибка запроса.")
-                    .build();
+                            .add("type", "error")
+                            .add("message","Ошибка запроса.")
+                            .build();
                 }
             } else if (criteria.getAsJsonObject().get("badCustomers") != null) {
                 int badCustomers = criteria.getAsJsonObject().get("badCustomers").getAsInt();
                 try {
                     PreparedStatement query = DatabaseUtils.connection.prepareStatement(
-                    "WITH buys AS ( " +
-                        "    SELECT DISTINCT Buyers.buyerId, Buyers.name, Buyers.lastName," +
-                        "        COUNT(Purchases.buyer) AS totalMinBuys " +
-                        "    FROM Purchases " +
-                        "             INNER JOIN Buyers ON Purchases.buyer = Buyers.buyerId " +
-                        "             INNER JOIN Goods ON Purchases.item = Goods.goodId " +
-                        "    group by Buyers.buyerId, Buyers.name, Buyers.lastName)" +
-                        "SELECT * FROM buys WHERE totalMinBuys = (" +
-                        "    SELECT MIN(totalMinBuys) FROM buys" +
-                        ") LIMIT "+badCustomers+";");
+                            "WITH buys AS ( " +
+                                    "    SELECT DISTINCT Buyers.buyerId, Buyers.name, Buyers.lastName," +
+                                    "        COUNT(Purchases.buyer) AS totalMinBuys " +
+                                    "    FROM Purchases " +
+                                    "             INNER JOIN Buyers ON Purchases.buyer = Buyers.buyerId " +
+                                    "             INNER JOIN Goods ON Purchases.item = Goods.goodId " +
+                                    "    group by Buyers.buyerId, Buyers.name, Buyers.lastName)" +
+                                    "SELECT * FROM buys WHERE totalMinBuys = (" +
+                                    "    SELECT MIN(totalMinBuys) FROM buys" +
+                                    ") LIMIT "+badCustomers+";");
                     ResultSet result = query.executeQuery();
                     while (result.next()){
                         rowResults.add(new JsonBuilder()
@@ -171,11 +209,10 @@ public class Main {
                     }
                     result.close();
                 } catch (SQLException e) {
-                    e.printStackTrace();
                     return new JsonBuilder()
-                        .add("type", "error")
-                        .add("message","Ошибка запроса.")
-                    .build();
+                            .add("type", "error")
+                            .add("message","Ошибка запроса.")
+                            .build();
                 }
 
             } else {
@@ -203,7 +240,7 @@ public class Main {
             return new JsonBuilder()
                     .add("type", "error")
                     .add("message","Даты не указаны.")
-                .build();
+                    .build();
         }
 
         SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
@@ -247,13 +284,13 @@ public class Main {
                 buyerRow.add("name", buyersResult.getString("name")+" "+buyersResult.getString("lastName"));
                 PreparedStatement query = DatabaseUtils.connection.prepareStatement(
                         "SELECT Buyers.buyerId, Goods.name, goods.price, purchases.date " +
-                            "FROM Purchases " +
-                            "INNER JOIN Buyers ON Purchases.buyer = Buyers.buyerId " +
-                            "INNER JOIN Goods ON Purchases.item = Goods.goodId " +
-                            "group by Buyers.buyerId, Goods.name, goods.price, purchases.date " +
-                            "HAVING purchases.date BETWEEN '"+startDate+"'::date AND '"+endDate+"'::date " +
-                            "   AND EXTRACT(DOW FROM purchases.date) <> '0' AND EXTRACT(DOW FROM purchases.date) <> '6' " +
-                            "   AND Buyers.buyerId = "+buyersResult.getInt("buyerId"));
+                                "FROM Purchases " +
+                                "INNER JOIN Buyers ON Purchases.buyer = Buyers.buyerId " +
+                                "INNER JOIN Goods ON Purchases.item = Goods.goodId " +
+                                "group by Buyers.buyerId, Goods.name, goods.price, purchases.date " +
+                                "HAVING purchases.date BETWEEN '"+startDate+"'::date AND '"+endDate+"'::date " +
+                                "   AND EXTRACT(DOW FROM purchases.date) <> '0' AND EXTRACT(DOW FROM purchases.date) <> '6' " +
+                                "   AND Buyers.buyerId = "+buyersResult.getInt("buyerId"));
                 ResultSet result = query.executeQuery();
                 JsonArray products = new JsonArray();
                 int rows = 0;
@@ -262,7 +299,7 @@ public class Main {
                     products.add(new JsonBuilder()
                             .add("name", result.getString("name"))
                             .add("expenses", result.getFloat("price"))
-                        .build());
+                            .build());
                     rows++;
                     totalExpenses += result.getFloat("price");
                 }
@@ -276,11 +313,10 @@ public class Main {
             }
             buyersResult.close();
         } catch (SQLException e) {
-            e.printStackTrace();
             return new JsonBuilder()
-                .add("type", "error")
-                .add("message","Ошибка запроса.")
-            .build();
+                    .add("type", "error")
+                    .add("message","Ошибка запроса.")
+                    .build();
         }
 
         builder.add("customers", customers);
