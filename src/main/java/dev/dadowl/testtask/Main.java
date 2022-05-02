@@ -21,7 +21,14 @@ public class Main {
     public static JsonElement INPUT_FILE;
     public static String OUTPUT_FILE;
 
-    public static void main(String[] args) throws Exception {
+    public static void main(String[] args) {
+        /*
+         *
+         * В тестовом задании указано, что все ошибки должны быть обработаны и быть выведены в выходном файле.
+         * Я был не уверен на счет того, надо ли фиксироать ошибки, которые возникли в ходе инициализации программы, в файл или их надо выводить на экран.
+         * Изначально я и реализовал вывод этих ошибок в консоль(по истории коммитов можно отследить), но в итоге решил поменять и полностью все выводить в файл.
+         *
+         * */
         if (args.length < 3){
             FileUtils.saveFile("output.json", new JsonBuilder()
                     .add("type", "error")
