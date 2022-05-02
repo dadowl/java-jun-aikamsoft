@@ -10,6 +10,10 @@ import dev.dadowl.testtask.utils.JsonBuilder;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
 
 public class Main {
 
@@ -49,6 +53,8 @@ public class Main {
 
         if (REQUEST_TYPE == RequestType.SEARCH){
             FileUtils.saveFile(OUTPUT_FILE, search());
+        } else if (REQUEST_TYPE == RequestType.STAT){
+            FileUtils.saveFile(OUTPUT_FILE, stat());
         }
     }
 
@@ -173,6 +179,85 @@ public class Main {
         }
 
         builder.add("results", results);
+
+        return builder.build();
+    }
+
+    public static JsonObject stat(){
+        if (INPUT_FILE.getAsJsonObject().get("startDate") == null || INPUT_FILE.getAsJsonObject().get("endDate") == null){
+            return new JsonBuilder()
+                    .add("type", "error")
+                    .add("message","Даты не указаны.")
+                .build();
+        }
+
+        SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
+        Date startDate = null;
+        Date endDate = null;
+        try {
+            startDate = formatter.parse(INPUT_FILE.getAsJsonObject().get("startDate").getAsString());
+            endDate = formatter.parse(INPUT_FILE.getAsJsonObject().get("endDate").getAsString());
+        } catch (ParseException e) {
+            return new JsonBuilder()
+                    .add("type", "error")
+                    .add("message","Неправильный формат даты")
+                    .build();
+        }
+
+        Calendar cal1 = Calendar.getInstance();
+        Calendar cal2 = Calendar.getInstance();
+        cal1.setTime(startDate);
+        cal2.setTime(endDate);
+        int totalDays = 0;
+        while (cal1.before(cal2)) {
+            if ((Calendar.SATURDAY != cal1.get(Calendar.DAY_OF_WEEK)) && (Calendar.SUNDAY != cal1.get(Calendar.DAY_OF_WEEK))) {
+                totalDays++;
+            }
+            cal1.add(Calendar.DATE,1);
+        }
+
+        JsonBuilder builder = new JsonBuilder();
+        builder.add("type", "stat");
+        builder.add("totalDays", totalDays);
+
+        JsonArray customers = new JsonArray();
+
+        try {
+            PreparedStatement buyers = DatabaseUtils.connection.prepareStatement("SELECT * FROM buyers");
+            ResultSet buyersResult = buyers.executeQuery();
+            while(buyersResult.next()){
+                JsonBuilder buyerRow = new JsonBuilder();
+                buyerRow.add("name", buyersResult.getString("name")+" "+buyersResult.getString("lastName"));
+                PreparedStatement query = DatabaseUtils.connection.prepareStatement(
+                        "SELECT Buyers.buyerId, Goods.name, goods.price, purchases.date " +
+                            "FROM Purchases " +
+                            "INNER JOIN Buyers ON Purchases.buyer = Buyers.buyerId " +
+                            "INNER JOIN Goods ON Purchases.item = Goods.goodId " +
+                            "group by Buyers.buyerId, Goods.name, goods.price, purchases.date " +
+                            "HAVING purchases.date BETWEEN '"+startDate+"'::date AND '"+endDate+"'::date " +
+                            "   AND EXTRACT(DOW FROM purchases.date) <> '0' AND EXTRACT(DOW FROM purchases.date) <> '6' " +
+                            "   AND Buyers.buyerId = "+buyersResult.getInt("buyerId"));
+                ResultSet result = query.executeQuery();
+                JsonArray products = new JsonArray();
+                int rows = 0;
+                while (result.next()){
+                    products.add(new JsonBuilder()
+                            .add("name", result.getString("name"))
+                            .add("expenses", result.getFloat("price"))
+                        .build());
+                    rows++;
+                }
+                if(rows == 0) continue;
+                buyerRow.add("purchases", products);
+                customers.add(buyerRow.build());
+                result.close();
+            }
+            buyersResult.close();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        builder.add("customers", customers);
 
         return builder.build();
     }
