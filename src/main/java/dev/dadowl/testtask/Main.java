@@ -198,6 +198,7 @@ public class Main {
     }
 
     public static JsonObject stat(){
+
         if (INPUT_FILE.getAsJsonObject().get("startDate") == null || INPUT_FILE.getAsJsonObject().get("endDate") == null){
             return new JsonBuilder()
                     .add("type", "error")
@@ -235,6 +236,8 @@ public class Main {
         builder.add("totalDays", totalDays);
 
         JsonArray customers = new JsonArray();
+        float totalExpensesAll = 0;
+        float productCounter = 0;
 
         try {
             PreparedStatement buyers = DatabaseUtils.connection.prepareStatement("SELECT * FROM buyers");
@@ -254,15 +257,20 @@ public class Main {
                 ResultSet result = query.executeQuery();
                 JsonArray products = new JsonArray();
                 int rows = 0;
+                float totalExpenses = 0;
                 while (result.next()){
                     products.add(new JsonBuilder()
                             .add("name", result.getString("name"))
                             .add("expenses", result.getFloat("price"))
                         .build());
                     rows++;
+                    totalExpenses += result.getFloat("price");
                 }
                 if(rows == 0) continue;
+                productCounter += rows;
+                totalExpensesAll += totalExpenses;
                 buyerRow.add("purchases", products);
+                buyerRow.add("totalExpenses", totalExpenses);
                 customers.add(buyerRow.build());
                 result.close();
             }
@@ -276,6 +284,8 @@ public class Main {
         }
 
         builder.add("customers", customers);
+        builder.add("totalExpenses", totalExpensesAll);
+        builder.add("avgExpenses", (totalExpensesAll / productCounter));
 
         return builder.build();
     }
