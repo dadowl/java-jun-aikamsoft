@@ -28,12 +28,14 @@ public class FileUtils {
 
         File file = new File(fileName);
 
-        FileWriter writer;
+        OutputStream outputStream;
         try {
-            writer = new FileWriter(file);
-            writer.write(gson.toJson(jsonToSave));
-            writer.close();
-        } catch (IOException e) {
+            outputStream = new FileOutputStream(file);
+            OutputStreamWriter outputStreamWriter = new OutputStreamWriter(outputStream,  StandardCharsets.UTF_8);
+            outputStreamWriter.write(gson.toJson(jsonToSave));
+            outputStreamWriter.flush();
+            outputStreamWriter.close();
+        } catch (Exception e) {
             e.printStackTrace();
             return false;
         }
