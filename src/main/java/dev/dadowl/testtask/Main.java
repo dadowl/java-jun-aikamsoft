@@ -93,6 +93,10 @@ public class Main {
                     result.close();
                 } catch (SQLException e) {
                     e.printStackTrace();
+                    return new JsonBuilder()
+                        .add("type", "error")
+                        .add("message","Ошибка запроса.")
+                    .build();
                 }
 
             } else if (criteria.getAsJsonObject().get("productName") != null && criteria.getAsJsonObject().get("minTimes") != null) {
@@ -139,6 +143,10 @@ public class Main {
                     result.close();
                 } catch (SQLException e) {
                     e.printStackTrace();
+                    return new JsonBuilder()
+                        .add("type", "error")
+                        .add("message","Ошибка запроса.")
+                    .build();
                 }
             } else if (criteria.getAsJsonObject().get("badCustomers") != null) {
                 int badCustomers = criteria.getAsJsonObject().get("badCustomers").getAsInt();
@@ -164,10 +172,16 @@ public class Main {
                     result.close();
                 } catch (SQLException e) {
                     e.printStackTrace();
+                    return new JsonBuilder()
+                        .add("type", "error")
+                        .add("message","Ошибка запроса.")
+                    .build();
                 }
 
             } else {
                 continue;
+                //Я не уверен, что надо что-то делать, если критерий не найден, потому что этого не было указано в задании.
+                // Поэтому я решил скипнуть его.
 //                rowResults.add(new JsonBuilder()
 //                    .add("type", "error")
 //                    .add("message","Критерий указан не верно.")
@@ -255,6 +269,10 @@ public class Main {
             buyersResult.close();
         } catch (SQLException e) {
             e.printStackTrace();
+            return new JsonBuilder()
+                .add("type", "error")
+                .add("message","Ошибка запроса.")
+            .build();
         }
 
         builder.add("customers", customers);
