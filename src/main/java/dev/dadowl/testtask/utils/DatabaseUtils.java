@@ -13,16 +13,11 @@ public class DatabaseUtils {
 
     public static Connection connection;
 
-    public static void connect() {
-        try {
-            Class.forName("org.postgresql.Driver");
-            Connection conn;
-            conn = DriverManager.getConnection(url, user, password);
-            connection = conn;
-        } catch (SQLException | ClassNotFoundException e){
-            e.printStackTrace();
-            connection = null;
-        }
+    public static void connect() throws ClassNotFoundException, SQLException {
+        Class.forName("org.postgresql.Driver");
+        Connection conn;
+        conn = DriverManager.getConnection(url, user, password);
+        connection = conn;
     }
 
     public static Boolean initTables(){
