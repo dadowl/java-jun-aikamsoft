@@ -23,7 +23,7 @@ public class Main {
             return;
         }
         try {
-            REQUEST_TYPE = RequestType.valueOf("search".toUpperCase()/*args[0].toUpperCase()*/);
+            REQUEST_TYPE = RequestType.valueOf(args[0].toUpperCase().toUpperCase());
         } catch (Exception e){
             System.out.println("Request type is invalid.");
             return;
